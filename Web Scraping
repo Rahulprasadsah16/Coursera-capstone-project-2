@@ -1,0 +1,27 @@
+import numpy as np
+import pandas as pd
+from bs4 import BeautifulSoup
+import requests
+
+#scrape raw data
+url='https://en.wikipedia.org/wiki/List_of_postal_codes_of_Canada:_M'
+r = requests.get(url)
+table = pd.read_html(r.text)
+
+#Store parsed data into Pandas DataFrame
+df=pd.DataFrame(table[0])
+df.columns=['Postcode','Borough','Neighbourhood']
+df.drop([0],axis=0,inplace=True)
+df.reset_index()
+df.head()
+
+
+Ignore cells with a borough that is Not assigned.
+df.drop(df[df['Borough']=="Not assigned"].index,axis=0, inplace=True)
+
+#grouping neighborhood
+df1=df.groupby("Postcode").agg(lambda x:','.join(set(x)))
+
+#replace neighborhood into next one
+df1.loc[df1['Neighbourhood']=="Not assigned",'Neighbourhood']=df1.loc[df1['Neighbourhood']=="Not assigned",'Borough']
+df1.shape
